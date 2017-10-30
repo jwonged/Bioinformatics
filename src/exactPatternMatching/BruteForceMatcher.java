@@ -17,8 +17,8 @@ public class BruteForceMatcher implements Matcher{
 			ArrayList<Integer> matchedIndexes = new ArrayList<>();
 			int patLen = pattern.length();
 			
-			for (int i=0; i<genome.length() - patLen; i++) {
-				if (genome.substring(i, i+patLen).equals(pattern)) {
+			for (int i=0; i<genome.length() - patLen + 1; i++) {
+				if (genome.substring(i, i + patLen).equals(pattern)) {
 					matchedIndexes.add(i);
 				}
 			}
