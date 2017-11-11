@@ -5,9 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class BruteForceMatcher implements Matcher{
-	public int checkWindow(final int index, final String pattern, final String genome) {
-		return 0;
-	}
 	//Sliding window matcher
 	public HashMap<String, List<Integer>> match(final String genome, 
 			final List<String> allPatterns) {
