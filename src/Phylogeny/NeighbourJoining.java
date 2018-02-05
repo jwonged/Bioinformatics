@@ -108,7 +108,6 @@ public class NeighbourJoining {
 		matrixD[1] = new Integer[]{2,0,4,6};
 		matrixD[2] = new Integer[]{4,4,0,6};
 		matrixD[3] = new Integer[]{6,6,6,0};
-		neighbourJoin(matrixD, matrixD.length, mapCharToIndex);
 	}
 
 }
