@@ -36,11 +36,11 @@ public class GlobalSequenceAlignment {
 		
 		//first row/col
 		for (int i=1; i<table.length; i++) {
-			table[i][0] = scoreMatrix.indel;
+			table[i][0] = table[i-1][0] + scoreMatrix.indel;
 			pointers[i][0] = Direction.RIGHT;
 		}
 		for (int j=1; j<table[0].length; j++) {
-			table[0][j] = scoreMatrix.indel;
+			table[0][j] = table[0][j-1] + scoreMatrix.indel;
 			pointers[0][j] = Direction.DOWN;
 		}
 		
@@ -67,6 +67,7 @@ public class GlobalSequenceAlignment {
 				}
 			}
 		}
+		printTable(table);
 		return backtrack(a,b,table,pointers);
 	}
 	public Alignment backtrack(String a, 
@@ -100,12 +101,23 @@ public class GlobalSequenceAlignment {
 				sbB.reverse().toString(),
 				score);
 	}
+	private static void printTable(int[][] table) {
+		for (int i=0; i<table.length; i++) {
+			for (int j=0; j<table[0].length; j++) {
+				System.out.print(table[i][j]);
+				System.out.print(" ");
+			}
+			System.out.println();
+		}
+	}
 	public static void main(String[] args) {
+		//match, mismatch, indel
 		ScoreMatrix scoreMatrix = new ScoreMatrix(5, -3, -4);
-		String a = "CGTGAA";
+		String a = "CGTGAA"; //15 - 6 - 12
 		String b = "GACTTAC";
 		GlobalSequenceAlignment aligner = new GlobalSequenceAlignment();
-		Alignment result = aligner.computeGlobalAlignment(a, b, scoreMatrix);
+		Alignment result = aligner.computeGlobalAlignment(b, a
+				, scoreMatrix);
 		System.out.println(result.a); //Prints --CGTGAA
 		System.out.println(result.b); //Prints GACTT-AC
 		System.out.println(result.score);
