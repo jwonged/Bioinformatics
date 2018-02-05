@@ -6,10 +6,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Tree {
+	//Phylogeny tree
 	public static class Node {
 		Character c;
 		List<ConnectedTo> children;
 		public Node(char c) {
+			this.c = c;
 			children = new ArrayList<>();
 		}
 		public void addChild(Node c, int weight) {
@@ -17,6 +19,9 @@ public class Tree {
 		}
 		public List<ConnectedTo> getChildren() {
 			return children;
+		}
+		public Character getChar() {
+			return c;
 		}
 	}
 	public static class ConnectedTo {
@@ -29,31 +34,33 @@ public class Tree {
 	}
 	public HashMap<Character, Node> charToNode;
 	public Node root;
+	
 	public Tree(Character a, Character b, int weight) {
-		//For neatness, rooting the tree
+		//For convenience of structure, I'm making the tree rooted
 		charToNode = new HashMap<>();
 		root = new Node('*');
 		charToNode.put('*', root);
 		addEdge('*', a, weight/2);
 		addEdge('*', b, weight/2);
-		System.out.println("cnstructor");
 	}
 	public void addEdge(Character from, Character to, int weight) {
-		System.out.println(from);
-		System.out.println(to);
 		Node current = new Node(to);
 		charToNode.put(to, current);
 		charToNode.get(from).addChild(current, weight);
 	}
 	public void printTree() {
-		LinkedList<Node> q = new LinkedList<>();
-		q.add(root);
+		System.out.println("Print!");
+		LinkedList<ConnectedTo> q = new LinkedList<>();
+		System.out.println(root.getChar());
+		for (ConnectedTo c : root.getChildren()) {
+			q.add(c);
+		}
 		while (!q.isEmpty()) {
-			Node current = q.remove();
-			System.out.println(current.c);
-			List<ConnectedTo> edges = current.getChildren();
-			for (ConnectedTo c : edges) {
-				q.add(c.to);
+			ConnectedTo current = q.remove();
+			System.out.println(current.weight);
+			System.out.println(current.to.getChar());
+			for (ConnectedTo c : current.to.getChildren()) {
+				if (c != null) q.add(c);
 			}
 		}
 	}
