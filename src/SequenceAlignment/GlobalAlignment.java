@@ -1,5 +1,7 @@
 package SequenceAlignment;
-
+/*
+ * Incomplete -- view GlobalSequenceAlignment instead
+ */
 public class GlobalAlignment {
 	public static class Alignment {
 		public String seqA;

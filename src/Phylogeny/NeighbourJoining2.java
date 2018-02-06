@@ -39,10 +39,10 @@ public class NeighbourJoining2 {
 	}
 	private Tree neighbourJoin(HashMap<Coord, Integer> matrixD, 
 			int nElements, List<Character> remainingChars, HashSet<Character> usedChars) {
+		printList(remainingChars);
+		printMatrix(matrixD, remainingChars);
 		if (nElements == 2) {
 			//Return tree with 2 nodes and edge between them
-			printList(remainingChars);
-			printMatrix(matrixD, remainingChars);
 			return new Tree(
 					remainingChars.get(0), 
 					remainingChars.get(1),
@@ -102,9 +102,11 @@ public class NeighbourJoining2 {
 				}
 			}
 		}
+		System.out.println();
 		printList(remainingChars);
 		printMatrix(dstar, remainingChars);
-		System.out.println(min);
+		System.out.println("Min dstar val: "+min);
+		System.out.println();
 		return minPair;
 	}
 	private HashMap<Character, Integer> computeTotalDistances(
@@ -142,8 +144,6 @@ public class NeighbourJoining2 {
 				newMatrixD.put(current, matrixD.get(current));
 			}
 		}
-		printList(remainingChars);
-		printMatrix(matrixD, remainingChars);
 		
 		//add new row and col for new char
 		for (char i : newRemainingChars) {

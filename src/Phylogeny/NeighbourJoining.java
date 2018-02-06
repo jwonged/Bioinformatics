@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/*
+ * Incomplete -- view NeighbourJoining2 instead
+ */
+
 public class NeighbourJoining {
 	public static class Node {
 		
