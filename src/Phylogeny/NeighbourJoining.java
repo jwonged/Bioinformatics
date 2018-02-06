@@ -2,116 +2,180 @@ package Phylogeny;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
-/*
- * Incomplete -- view NeighbourJoining2 instead
- */
-
 public class NeighbourJoining {
-	public static class Node {
-		
+	public static class Coord {
+	    public final char x;
+	    public final char y;
+	    public Coord(char x, char y) {
+	        this.x = x;
+	        this.y = y;
+	    }
+	    @Override
+	    public boolean equals(Object o) {
+	        if (this == o) return true;
+	        if (!(o instanceof Coord)) return false;
+	        Coord coord = (Coord) o;
+	        return x == coord.x && y == coord.y;
+	    }
+	    @Override
+	    public int hashCode() {
+	    	return java.util.Objects.hash(x,y);
+	    }
 	}
 	public static class NodePair {
-		public int i, j;
-		public NodePair(int i, int j) {
+		public Character i, j;
+		public NodePair(Character i, Character j) {
 			this.i = i;
 			this.j = j;
 		}
 	}
-	public static class DstarAndMin {
-		NodePair pair;
-		Integer[][] dstar;
-		public DstarAndMin(Integer[][] dstar, NodePair pair) {
-			this.dstar = dstar;
-			this.pair = pair;
-		}
+	public Tree neighbourJoin(HashMap<Coord, Integer> matrixD, 
+			int nElements, List<Character> remainingChars) {
+		return neighbourJoin(matrixD, nElements, 
+				remainingChars, new HashSet<>(remainingChars));
 	}
-	public static DstarAndMin computeDstarAndMin(Integer[][] matrixD, 
-			int nElements, List<Integer> totalDistances) {
+	private Tree neighbourJoin(HashMap<Coord, Integer> matrixD, 
+			int nElements, List<Character> remainingChars, HashSet<Character> usedChars) {
+		printList(remainingChars);
+		printMatrix(matrixD, remainingChars);
+		if (nElements == 2) {
+			//Return tree with 2 nodes and edge between them
+			return new Tree(
+					remainingChars.get(0), 
+					remainingChars.get(1),
+					matrixD.get(new Coord(remainingChars.get(0), remainingChars.get(1))));
+		}
+		
+		HashMap<Character, Integer> totalDistances = 
+				computeTotalDistances(matrixD, nElements, remainingChars);
+		NodePair minPair = 
+				computeDstarAndMin(matrixD, nElements, totalDistances, remainingChars);
+		int delta = (totalDistances.get(minPair.i) - 
+						totalDistances.get(minPair.j)) / (nElements -2);
+		int limbLenI = (matrixD.get(new Coord(minPair.i, minPair.j)) + delta) / 2;
+		int limbLenJ = (matrixD.get(new Coord(minPair.i, minPair.j)) - delta) / 2;
+		
+		//add all old nodes unaffected
+		List<Character> newRemainingChars = new ArrayList<>(remainingChars);
+		
+		//Get a char for the new node which hasn't been used
+		Character daNewCharacter = makeNewChar(usedChars);
+		usedChars.add(daNewCharacter);
+		newRemainingChars.add(daNewCharacter);
+		
+		//remove rows and columns for i and j
+		newRemainingChars.remove(minPair.i);
+		newRemainingChars.remove(minPair.j);
+		HashMap<Coord, Integer> newMatrixD = recomputeMatrixD(newRemainingChars, 
+															minPair, 
+															matrixD, 
+															remainingChars, 
+															daNewCharacter);
+		
+		Tree current = neighbourJoin(
+				newMatrixD, nElements - 1, newRemainingChars, usedChars);
+		current.addEdge(daNewCharacter, minPair.i,  limbLenI);
+		current.addEdge(daNewCharacter, minPair.j,  limbLenJ);
+		return current;
+	}
+	
+	private NodePair computeDstarAndMin(HashMap<Coord, Integer> matrixD, 
+			int nElements, HashMap<Character, Integer> totalDistances, List<Character> remainingChars) {
+		//qn: What should I do if 2 cells in the matrix have the same min value?
 		int min = Integer.MAX_VALUE;
 		NodePair minPair = null;
-		Integer[][] dStar = new Integer[nElements][nElements];
-		for (int i=0; i<nElements; i++) {
-			for (int j=0; j<nElements; j++) {
-				if (i==j) dStar[i][j] = 0;
+		HashMap<Coord, Integer> dstar = new HashMap<>();
+		for (char i : remainingChars) {
+			for (char j : remainingChars) {
+				if (i==j) dstar.put(new Coord(i,j), 0);
 				else {
-					dStar[i][j] = (nElements-2) * matrixD[i][j] 
-							- totalDistances.get(i) - totalDistances.get(j);
-					if (dStar[i][j] <= min) {
-						min = dStar[i][j];
+					dstar.put(new Coord(i,j),
+							(nElements-2) * matrixD.get(new Coord(i,j))
+							- totalDistances.get(i) - totalDistances.get(j));
+					if (dstar.get(new Coord(i,j)) <= min) {
+						min = dstar.get(new Coord(i,j));
 						minPair = new NodePair(i,j);
 					}
 				}
 			}
 		}
-		System.out.println(min);
-		return new DstarAndMin(dStar, minPair);
+		System.out.println();
+		printList(remainingChars);
+		printMatrix(dstar, remainingChars);
+		System.out.println("Min dstar val: "+min);
+		System.out.println();
+		return minPair;
 	}
-	public static List<Integer> computeTotalDistances(Integer[][] matrixD, int nElements) {
-		List<Integer> totalDistances = new ArrayList<>();
-		for (int i=0; i<nElements; i++) {
+	private HashMap<Character, Integer> computeTotalDistances(
+			HashMap<Coord, Integer> matrixD, int nElements, List<Character> remainingChars) {
+		//Compute total dist for each char
+		HashMap<Character, Integer> totalDistances = new HashMap<>();
+		for (char i : remainingChars) {
 			int sum = 0;
-			for (int j=0; j<nElements; j++) {
-				sum += matrixD[i][j];
+			for (char j : remainingChars) {
+				sum += matrixD.get(new Coord(i,j));
 			}
-			totalDistances.add(sum);
+			totalDistances.put(i, sum);
 		}
 		return totalDistances;
 	}
-	public static Node neighbourJoin(Integer[][] matrixD, 
-			int nElements, HashMap<Integer, Character> mapIndexToChar) {
-		List<Integer> totalDistances = computeTotalDistances(matrixD, nElements);
-		DstarAndMin dstarAndMin = computeDstarAndMin(matrixD, nElements,totalDistances);
-		Integer[][] dstar = dstarAndMin.dstar;
-		NodePair minPair = dstarAndMin.pair;
-		int delta = (totalDistances.get(minPair.i) - 
-						totalDistances.get(minPair.j)) / (nElements -2);
-		int limbLenI = (matrixD[minPair.i][minPair.j] + delta)/2;
-		int limbLenJ = (matrixD[minPair.i][minPair.j] - delta)/2;
-		
-		HashMap<Integer, Character> newMapIndexToChar = new HashMap<>(mapIndexToChar);
-		Integer[][] newMatrixD = new Integer[nElements-1][nElements-1];
-		int row = 0, col = 0;
-		for (int i=0; i<matrixD.length; i++) {
-			col = 0;
-			if (i == minPair.i || i == minPair.j) continue;
-			for (int j=0; j<matrixD[0].length; j++) {
-				if (j == minPair.j || j == minPair.i) continue;
-				newMatrixD[row][col] = matrixD[i][j];
-				col++;
+	private Character makeNewChar(HashSet<Character> usedChars) {
+		//Get char that hasn't been used -- assuming that there won't be more than 26 chars used
+		Character daNewCharacter = 'm';
+		for (int i=0; i<26; i++) { 
+			if (!usedChars.contains((char) ('A'+i))) {
+				daNewCharacter = (char) ('A'+i);
+				return daNewCharacter;
 			}
-			row++;
 		}
-		//compute new lengths
-		printMatrix(newMatrixD);
-		return new Node();
+		return daNewCharacter;
 	}
-	public static void printMatrix(Integer[][] table) {
-		for (int i=0; i<table.length; i++) {
-			for (int j=0; j<table[0].length; j++) {
-				System.out.print(table[i][j]);
+	private HashMap<Coord, Integer> recomputeMatrixD(List<Character> newRemainingChars,
+			NodePair minPair, HashMap<Coord, Integer> matrixD, 
+			List<Character> remainingChars, Character daNewCharacter) {
+		HashMap<Coord, Integer> newMatrixD = new HashMap<>();
+		
+		for (char i : newRemainingChars) {
+			for (char j : newRemainingChars) {
+				Coord current = new Coord(i,j);
+				newMatrixD.put(current, matrixD.get(current));
+			}
+		}
+		
+		//add new row and col for new char
+		for (char i : newRemainingChars) {
+			if (i == daNewCharacter) {
+				newMatrixD.put(new Coord(i, daNewCharacter), 0);
+				newMatrixD.put(new Coord(daNewCharacter, i), 0);
+			} else {
+				int newDValForNewChar = ( matrixD.get(new Coord(i, minPair.i)) 
+						+ matrixD.get(new Coord(i, minPair.j)) 
+						- matrixD.get(new Coord(minPair.i, minPair.j)) ) / 2;
+				newMatrixD.put(new Coord(i, daNewCharacter), newDValForNewChar);
+				newMatrixD.put(new Coord(daNewCharacter, i), newDValForNewChar);
+			}
+		}
+		return newMatrixD;
+	}
+	
+	private void printList(List<Character> chars) {
+		for (char j : chars) {
+			System.out.print(j);
+			System.out.print(" ");
+		}
+		System.out.println();
+	}
+	private void printMatrix(
+			HashMap<Coord, Integer> matrixD, List<Character> remainingChars) {
+		for (char i : remainingChars) {
+			for (char j : remainingChars) {
+				System.out.print(matrixD.get(new Coord(i,j)));
 				System.out.print(" ");
 			}
 			System.out.println();
 		}
 	}
-	public static void main(String[] args) {
-		HashMap<Integer, Character> mapIndexToChar = new HashMap<>();
-		mapIndexToChar.put(0, 'B');
-		mapIndexToChar.put(1, 'A');
-		mapIndexToChar.put(2, 'C');
-		mapIndexToChar.put(3, 'D');
-		HashMap<Character, Integer> mapCharToIndex = new HashMap<>();
-		mapCharToIndex.put('A', 0);
-		mapCharToIndex.put('B', 1);
-		mapCharToIndex.put('C', 2);
-		mapCharToIndex.put('D', 3);
-		Integer[][] matrixD = new Integer[4][4];
-		matrixD[0] = new Integer[]{0,2,4,6};
-		matrixD[1] = new Integer[]{2,0,4,6};
-		matrixD[2] = new Integer[]{4,4,0,6};
-		matrixD[3] = new Integer[]{6,6,6,0};
-	}
-
 }

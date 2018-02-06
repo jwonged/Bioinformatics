@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import Phylogeny.NeighbourJoining2.Coord;
+import Phylogeny.NeighbourJoining.Coord;
 
 public class NeighbourJoinMain {
 	public static void main(String[] args) {
@@ -22,14 +22,14 @@ public class NeighbourJoinMain {
 		HashMap<Coord, Integer> matrixD = 
 				convertToMatrixMap(matrixDtmp, remainingChars);
 		
-		NeighbourJoining2 nj = new NeighbourJoining2();
+		NeighbourJoining nj = new NeighbourJoining();
 		Tree result = 
 				nj.neighbourJoin(matrixD, nElements, remainingChars);
 		result.printTree();
 		
 	}
 	private static void runExample2() {
-		NeighbourJoining2 nj = new NeighbourJoining2();
+		NeighbourJoining nj = new NeighbourJoining();
 		Integer[][] matrixDtmp2 = new Integer[4][4];
 		matrixDtmp2[0] = new Integer[]{0,13,21,22};
 		matrixDtmp2[1] = new Integer[]{13,0,12,13};
